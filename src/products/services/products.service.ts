@@ -1,60 +1,78 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
+import { InjectModel } from '@nestjs/mongoose'
+import { Model, FilterQuery } from 'mongoose'
 
 import { Product } from '../entities/product.entity'
-import { CreateProductDto, UpdateProductDto } from '../dtos/product.dto'
+import {
+    CreateProductDto,
+    UpdateProductDto,
+    FilterProductsDto
+} from '../dtos/product.dto'
 
 @Injectable()
 export class ProductsService {
-    private counterId = 1
-    private products: Product[] = [
-        {
-            id: 1,
-            name: 'Product 1',
-            description: 'bla bla',
-            price: 122,
-            image: '',
-            stock: 12
-        }
-    ]
+    constructor(
+        @InjectModel(Product.name) private productModel: Model<Product>
+    ) {}
 
-    findAll(): Product[] {
-        return this.products
+    findAll(
+        params: FilterProductsDto = { limit: 100, offset: 0 }
+    ): Promise<Product[]> {
+        const filters: FilterQuery<Product> = {}
+        const { limit = 100, offset = 0, minPrice, maxPrice, hasStock } = params
+        if (minPrice && maxPrice) {
+            filters.price = { $gte: minPrice, $lte: maxPrice }
+        }
+        if (hasStock) {
+            filters.stock = { $gte: 1 }
+        }
+        return this.productModel
+            .find(filters)
+            .skip(offset * limit)
+            .limit(limit)
+            .exec()
     }
 
-    findOne(id: number): Product {
-        const product = this.products.find((item) => item.id === id)
+    async findOne(id: string): Promise<Product> {
+        const product = await this.productModel.findById(id).exec()
         if (!product) {
             throw new NotFoundException(`Product #${id} not found`)
         }
         return product
     }
 
-    create(payload: CreateProductDto): Product {
-        this.counterId = this.counterId + 1
-        const newProduct = {
-            id: this.counterId,
-            ...payload
-        }
-        this.products.push(newProduct)
-        return newProduct
+    create(payload: CreateProductDto): Promise<Product> {
+        const newProduct = new this.productModel(payload)
+        return newProduct.save()
     }
 
-    update(id: number, payload: UpdateProductDto): Product {
-        const product = this.findOne(id)
-        const index = this.products.findIndex((item) => item.id === id)
-        this.products[index] = {
-            ...product,
-            ...payload
-        }
-        return this.products[index]
-    }
-
-    remove(id: number) {
-        const index = this.products.findIndex((item) => item.id === id)
-        if (index === -1) {
+    async update(id: string, payload: UpdateProductDto): Promise<Product> {
+        const product = await this.productModel
+            .findByIdAndUpdate(id, { $set: payload }, { new: true })
+            .exec()
+        if (!product) {
             throw new NotFoundException(`Product #${id} not found`)
         }
-        this.products.splice(index, 1)
+        return product
+    }
+
+    async remove(id: string): Promise<boolean> {
+        await this.findOne(id)
+        await this.productModel.findByIdAndDelete(id).exec()
         return true
+    }
+
+    async decrease(id: string, units: number): Promise<Product> {
+        const product = await this.productModel
+            .findByIdAndUpdate(
+                id,
+                { $inc: { stock: units / -1 } },
+                { new: true }
+            )
+            .exec()
+        if (!product) {
+            throw new NotFoundException(`Product #${id} not found`)
+        }
+        return product
     }
 }

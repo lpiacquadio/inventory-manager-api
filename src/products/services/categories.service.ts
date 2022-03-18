@@ -1,56 +1,46 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
+import { InjectModel } from '@nestjs/mongoose'
+import { Model } from 'mongoose'
 
 import { Category } from '../entities/category.entity'
 import { CreateCategoryDto, UpdateCategoryDto } from '../dtos/category.dto'
 
 @Injectable()
 export class CategoriesService {
-    private counterId = 1
-    private categories: Category[] = [
-        {
-            id: 1,
-            name: 'Category 1'
-        }
-    ]
+    constructor(
+        @InjectModel(Category.name) private categoryModel: Model<Category>
+    ) {}
 
-    findAll(): Category[] {
-        return this.categories
+    findAll(): Promise<Category[]> {
+        return this.categoryModel.find().exec()
     }
 
-    findOne(id: number): Category {
-        const category = this.categories.find((item) => item.id === id)
+    async findOne(id: string): Promise<Category> {
+        const category = await this.categoryModel.findById(id).exec()
         if (!category) {
             throw new NotFoundException(`Category #${id} not found`)
         }
         return category
     }
 
-    create(data: CreateCategoryDto): Category {
-        this.counterId = this.counterId + 1
-        const newCategory = {
-            id: this.counterId,
-            ...data
-        }
-        this.categories.push(newCategory)
-        return newCategory
+    create(payload: CreateCategoryDto): Promise<Category> {
+        const newCategory = new this.categoryModel(payload)
+        return newCategory.save()
     }
 
-    update(id: number, payload: UpdateCategoryDto): Category {
-        const category = this.findOne(id)
-        const index = this.categories.findIndex((item) => item.id === id)
-        this.categories[index] = {
-            ...category,
-            ...payload
-        }
-        return this.categories[index]
-    }
-
-    remove(id: number) {
-        const index = this.categories.findIndex((item) => item.id === id)
-        if (index === -1) {
+    async update(id: string, payload: UpdateCategoryDto): Promise<Category> {
+        const category = await this.categoryModel
+            .findByIdAndUpdate(id, { $set: payload }, { new: true })
+            .exec()
+        if (!category) {
             throw new NotFoundException(`Category #${id} not found`)
         }
-        this.categories.splice(index, 1)
+        return category
+    }
+
+    async remove(id: string): Promise<boolean> {
+        await this.findOne(id)
+        await this.categoryModel.findByIdAndDelete(id).exec()
         return true
     }
 }

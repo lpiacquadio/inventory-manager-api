@@ -1,72 +1,44 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
+import { InjectModel } from '@nestjs/mongoose'
+import { Model } from 'mongoose'
 
 import { User } from '../entities/user.entity'
-import { Order } from '../entities/order.entity'
 import { CreateUserDto, UpdateUserDto } from '../dtos/user.dto'
-
-import { ProductsService } from '../../products/services/products.service'
 
 @Injectable()
 export class UsersService {
-    constructor(private productsService: ProductsService) {}
+    constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
-    private counterId = 1
-    private users: User[] = [
-        {
-            id: 1,
-            email: 'correo@mail.com',
-            password: '12345',
-            role: 'admin'
-        }
-    ]
-
-    findAll(): User[] {
-        return this.users
+    findAll(): Promise<User[]> {
+        return this.userModel.find().exec()
     }
 
-    findOne(id: number): User {
-        const user = this.users.find((item) => item.id === id)
+    async findOne(id: string): Promise<User> {
+        const user = await this.userModel.findById(id).exec()
         if (!user) {
             throw new NotFoundException(`User #${id} not found`)
         }
         return user
     }
 
-    create(data: CreateUserDto): User {
-        this.counterId = this.counterId + 1
-        const newUser = {
-            id: this.counterId,
-            ...data
-        }
-        this.users.push(newUser)
-        return newUser
+    create(payload: CreateUserDto): Promise<User> {
+        const newUser = new this.userModel(payload)
+        return newUser.save()
     }
 
-    update(id: number, payload: UpdateUserDto): User {
-        const user = this.findOne(id)
-        const index = this.users.findIndex((item) => item.id === id)
-        this.users[index] = {
-            ...user,
-            ...payload
-        }
-        return this.users[index]
-    }
-
-    remove(id: number) {
-        const index = this.users.findIndex((item) => item.id === id)
-        if (index === -1) {
+    async update(id: string, payload: UpdateUserDto): Promise<User> {
+        const user = await this.userModel
+            .findByIdAndUpdate(id, { $set: payload }, { new: true })
+            .exec()
+        if (!user) {
             throw new NotFoundException(`User #${id} not found`)
         }
-        this.users.splice(index, 1)
-        return true
+        return user
     }
 
-    getOrderByUser(id: number): Order {
-        const user = this.findOne(id)
-        return {
-            date: new Date(),
-            user,
-            products: this.productsService.findAll()
-        }
+    async remove(id: string): Promise<boolean> {
+        await this.findOne(id)
+        await this.userModel.findByIdAndDelete(id).exec()
+        return true
     }
 }

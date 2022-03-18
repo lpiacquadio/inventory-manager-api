@@ -6,12 +6,17 @@ import {
     Body,
     Put,
     Delete,
-    ParseIntPipe
+    Query
 } from '@nestjs/common'
 import { ApiTags, ApiOperation } from '@nestjs/swagger'
 
+import { MongoIdPipe } from '../../common/mongo-id.pipe'
 import { ProductsService } from '../services/products.service'
-import { CreateProductDto, UpdateProductDto } from '../dtos/product.dto'
+import {
+    CreateProductDto,
+    UpdateProductDto,
+    FilterProductsDto
+} from '../dtos/product.dto'
 
 @ApiTags('products')
 @Controller('products')
@@ -20,13 +25,13 @@ export class ProductsController {
 
     @Get()
     @ApiOperation({ summary: 'List of products' })
-    getProducts() {
-        return this.productsService.findAll()
+    getProducts(@Query() params: FilterProductsDto) {
+        return this.productsService.findAll(params)
     }
 
     @Get(':id')
     @ApiOperation({ summary: 'Get product by id' })
-    getOne(@Param('id', ParseIntPipe) id: number) {
+    getOne(@Param('id', MongoIdPipe) id: string) {
         return this.productsService.findOne(id)
     }
 
@@ -39,7 +44,7 @@ export class ProductsController {
     @Put(':id')
     @ApiOperation({ summary: 'Edit a product by id' })
     update(
-        @Param('id', ParseIntPipe) id: number,
+        @Param('id', MongoIdPipe) id: string,
         @Body() payload: UpdateProductDto
     ) {
         return this.productsService.update(id, payload)
@@ -47,7 +52,7 @@ export class ProductsController {
 
     @Delete(':id')
     @ApiOperation({ summary: 'Delete a product by id' })
-    delete(@Param('id', ParseIntPipe) id: number) {
+    delete(@Param('id', MongoIdPipe) id: string) {
         return this.productsService.remove(id)
     }
 }

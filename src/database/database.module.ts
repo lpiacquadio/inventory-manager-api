@@ -1,21 +1,27 @@
 import { Module, Global } from '@nestjs/common'
-import { HttpModule, HttpService } from '@nestjs/axios'
+import { ConfigType } from '@nestjs/config'
+import { MongooseModule } from '@nestjs/mongoose'
+
+import { config } from '../config'
 
 @Global()
 @Module({
-    imports: [HttpModule],
-    providers: [
-        {
-            provide: 'TASKS',
-            useFactory: async (http: HttpService) => {
-                const tasks = await http
-                    .get('https://jsonplaceholder.typicode.com/todos')
-                    .toPromise()
-                return tasks.data
+    imports: [
+        MongooseModule.forRootAsync({
+            useFactory: (configService: ConfigType<typeof config>) => {
+                const { connection, user, pass, host, port, dbName } =
+                    configService.mongo
+                return {
+                    uri: `${connection}://${host}:${port}`,
+                    user,
+                    pass,
+                    dbName
+                }
             },
-            inject: [HttpService]
-        }
+            inject: [config.KEY]
+        })
     ],
-    exports: ['TASKS']
+    providers: [],
+    exports: []
 })
 export class DatabaseModule {}
