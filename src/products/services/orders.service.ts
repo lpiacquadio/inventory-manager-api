@@ -10,20 +10,20 @@ import { Model } from 'mongoose'
 import { Order } from '../entities/order.entity'
 import { CreateOrderDto } from '../dtos/order.dto'
 
-import { UsersService } from '../../users/services/users.service'
+import { CustomersService } from 'src/users/services/customers.service'
 import { ProductsService } from './products.service'
 
 @Injectable()
 export class OrdersService {
     constructor(
-        @Inject(forwardRef(() => UsersService))
-        private usersService: UsersService,
+        @Inject(forwardRef(() => CustomersService))
+        private customersService: CustomersService,
         private productsService: ProductsService,
         @InjectModel(Order.name) private orderModel: Model<Order>
     ) {}
 
     async findAll(id: string): Promise<Order[]> {
-        return this.orderModel.find({ user: id }).exec()
+        return this.orderModel.find({ customer: id }).exec()
     }
 
     async findOne(id: string): Promise<Order> {
@@ -35,7 +35,7 @@ export class OrdersService {
     }
 
     async create(payload: CreateOrderDto): Promise<Order> {
-        await this.usersService.findOne(payload.user)
+        await this.customersService.findOne(payload.customer)
         const date = new Date()
         let total = 0
         const products = []
@@ -55,7 +55,7 @@ export class OrdersService {
             } catch (_) {}
         }
         const newOrder = new this.orderModel({
-            user: payload.user,
+            customer: payload.customer,
             products,
             date,
             total

@@ -21,6 +21,10 @@ export class UsersService {
         return user
     }
 
+    findByEmail(email: string): Promise<User> {
+        return this.userModel.findOne({ email }).exec()
+    }
+
     create(payload: CreateUserDto): Promise<User> {
         const newUser = new this.userModel(payload)
         return newUser.save()

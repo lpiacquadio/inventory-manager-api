@@ -1,18 +1,18 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
 import { Document, Types } from 'mongoose'
 
-import { User } from '../../users/entities/user.entity'
+import { Customer } from 'src/users/entities/customer.entity'
 import { OrderProduct, OrderProductSchema } from './product.entity'
 
 @Schema()
 export class Order extends Document {
     @Prop({
         type: Types.ObjectId,
-        ref: User.name,
+        ref: Customer.name,
         required: true,
         index: true
     })
-    user: User | Types.ObjectId
+    customer: Customer | Types.ObjectId
 
     @Prop({ type: [OrderProductSchema], required: true })
     products: Types.Array<OrderProduct>

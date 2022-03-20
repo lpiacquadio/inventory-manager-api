@@ -8,7 +8,7 @@ export class CreateOrderDto {
     @IsMongoId()
     @IsNotEmpty()
     @ApiProperty()
-    readonly user: string
+    readonly customer: string
 
     @IsNotEmpty()
     @IsArray()
