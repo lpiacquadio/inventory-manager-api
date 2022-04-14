@@ -11,7 +11,7 @@ import { AuthGuard } from '@nestjs/passport'
 import { Request } from 'express'
 
 import { AuthService } from '../services/auth.service'
-import { User } from 'src/users/entities/user.entity'
+import { User } from 'src/users/user.entity'
 import { LOCAL_STRATEGY } from '../strategies/local.strategy'
 
 @UseInterceptors(

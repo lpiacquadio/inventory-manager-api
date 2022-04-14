@@ -1,13 +1,11 @@
 import { forwardRef, Module } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
 
-import { CustomerController } from './controllers/customers.controller'
-import { CustomersService } from './services/customers.service'
-import { UsersController } from './controllers/users.controller'
-import { UsersService } from './services/users.service'
-import { User, UserSchema } from './entities/user.entity'
-import { Customer, CustomerSchema } from './entities/customer.entity'
+import { UsersController } from './users.controller'
+import { UsersService } from './users.service'
+import { User, UserSchema } from './user.entity'
 import { ProductsModule } from '../products/products.module'
+import { ProxyModules } from 'src/common/proxy/proxy.module'
 
 @Module({
     imports: [
@@ -16,15 +14,12 @@ import { ProductsModule } from '../products/products.module'
             {
                 name: User.name,
                 schema: UserSchema
-            },
-            {
-                name: Customer.name,
-                schema: CustomerSchema
             }
-        ])
+        ]),
+        ProxyModules
     ],
-    controllers: [CustomerController, UsersController],
-    providers: [CustomersService, UsersService],
-    exports: [CustomersService, UsersService]
+    controllers: [UsersController],
+    providers: [UsersService],
+    exports: [UsersService]
 })
 export class UsersModule {}

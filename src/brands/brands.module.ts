@@ -1,9 +1,9 @@
 import { forwardRef, Module } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
 
-import { ProductsController } from './products.controller'
-import { ProductsService } from './products.service'
-import { Product, ProductSchema } from './product.entity'
+import { BrandsController } from './brands.controller'
+import { BrandsService } from './brands.service'
+import { Brand, BrandSchema } from './brand.entity'
 import { UsersModule } from '../users/users.module'
 import { ProxyModules } from 'src/common/proxy/proxy.module'
 
@@ -12,14 +12,13 @@ import { ProxyModules } from 'src/common/proxy/proxy.module'
         forwardRef(() => UsersModule),
         MongooseModule.forFeature([
             {
-                name: Product.name,
-                schema: ProductSchema
+                name: Brand.name,
+                schema: BrandSchema
             }
         ]),
         ProxyModules
     ],
-    controllers: [ProductsController],
-    providers: [ProductsService],
-    exports: [ProductsService]
+    controllers: [BrandsController],
+    providers: [BrandsService]
 })
-export class ProductsModule {}
+export class BrandsModule {}

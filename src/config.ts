@@ -10,5 +10,6 @@ export const config = registerAs('config', () => ({
         connection: process.env.MONGO_CONNECTION
     },
     apiKey: process.env.API_KEY,
-    jwtSecret: process.env.JWT_SECRET
+    jwtSecret: process.env.JWT_SECRET,
+    amqpUrl: process.env.AMQP_URL
 }))

@@ -3,8 +3,12 @@ import { ConfigModule } from '@nestjs/config'
 import * as Joi from 'joi'
 
 import { AuthModule } from './auth/auth.module'
-import { UsersModule } from './users/users.module'
+import { BrandsModule } from './brands/brands.module'
+import { CategoriesModule } from './categories/categories.module'
+import { CustomersModule } from './customers/customers.module'
+import { OrdersModule } from './orders/orders.module'
 import { ProductsModule } from './products/products.module'
+import { UsersModule } from './users/users.module'
 import { DatabaseModule } from './database/database.module'
 import { enviroments } from './enviroments'
 import { config } from './config'
@@ -24,10 +28,15 @@ import { config } from './config'
                 MONGO_HOST: Joi.string().required(),
                 MONGO_CONNECTION: Joi.string().required(),
                 API_KEY: Joi.string().required(),
-                JWT_SECRET: Joi.string().required()
+                JWT_SECRET: Joi.string().required(),
+                AMQP_URL: Joi.string().required()
             })
         }),
         AuthModule,
+        BrandsModule,
+        CategoriesModule,
+        CustomersModule,
+        OrdersModule,
         UsersModule,
         ProductsModule,
         DatabaseModule
